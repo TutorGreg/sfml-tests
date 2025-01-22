@@ -4,50 +4,33 @@
 
 #include <iostream>
 
-#include "Button.hpp"
+struct imGuiWindow {
+    bool open = true;
+    std::string name = "Hello, world!";
+    std::string buttonName = "Look at this pretty button";
+};
 
-int main()
-{
-    // Initialize window
-    auto window = sf::RenderWindow(sf::VideoMode({800u, 800u}), "sfml-tests");
+
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode({640, 480}), "ImGui + SFML = <3");
     window.setFramerateLimit(60);
+    // TODO: learn more about this warning
     ImGui::SFML::Init(window);
 
     sf::Clock deltaClock;
     
-    const auto onClose = [&window](const sf::Event::Closed&)
-    {
-        window.close();
-    };
+    bool windowAOpen = true, 
+         windowBOpen = true;
 
-    const auto onKeyPressed = [&window](const sf::Event::KeyPressed& keyPressed)
-    {
-        if (keyPressed.scancode == sf::Keyboard::Scancode::Escape)
-            window.close();
-        else
-            std::cout << "Key pressed! Code: " << static_cast<int>(keyPressed.code) << ", Scancode: " << static_cast<int>(keyPressed.scancode) << std::endl;
+    int mainMenuButtonHeight = 50;
 
-        ImGui::SFML::ProcessEvent(window, keyPressed);
-    };
-    
-    const auto onMouseClicked = [&window](const sf::Event::MouseButtonPressed& mouseClicked)
-    {
-        if (mouseClicked.button == sf::Mouse::Button::Left)
-        {
-            std::cout << "Left mouse button pressed at (" << mouseClicked.position.x << ", " << mouseClicked.position.y << ")" << std::endl;
-        }
+    /****************************
+     **       GAME LOOP        **
+     ****************************/
+    while (window.isOpen()) {
 
-        else if (mouseClicked.button == sf::Mouse::Button::Right)
-        {
-            std::cout << "Right mouse button pressed at (" << mouseClicked.position.x << ", " << mouseClicked.position.y << ")" << std::endl;
-        } 
-
-        ImGui::SFML::ProcessEvent(window, mouseClicked);
-    };
-
-    while (window.isOpen())
-    {
-        //window.handleEvents(onClose, onKeyPressed, onMouseClicked);
+        // Event handling
         while (const auto event = window.pollEvent()) {
             ImGui::SFML::ProcessEvent(window, *event);
 
@@ -55,12 +38,27 @@ int main()
                 window.close();
             }
         }
-        
-        ImGui::SFML::Update(window, deltaClock.restart());
-        ImGui::ShowDemoWindow();
 
-        window.clear(sf::Color(50, 50, 50));
+
+        ImGui::SFML::Update(window, deltaClock.restart());
+
+        if(windowAOpen) {
+            ImGui::SetNextWindowSize({200, 300});
+            ImGui::SetNextWindowPos({0, 0});
+            ImGui::Begin("Hello, world!", nullptr, 
+                ImGuiWindowFlags_NoResize   | 
+                ImGuiWindowFlags_NoMove     | 
+                ImGuiWindowFlags_NoCollapse |
+                ImGuiWindowFlags_NoTitleBar );
+            ImGui::Button("START", { static_cast<int>(ImGui::GetContentRegionAvail()[0]), mainMenuButtonHeight });
+            ImGui::Button("EXIT",  { static_cast<int>(ImGui::GetContentRegionAvail()[0]), mainMenuButtonHeight });
+            ImGui::End();
+        }
+
+        window.clear();
         ImGui::SFML::Render(window);
         window.display();
     }
+
+    ImGui::SFML::Shutdown();
 }
